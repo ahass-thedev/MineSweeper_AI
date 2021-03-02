@@ -6,11 +6,12 @@ from matplotlib import colors
 
 class MineSweeper:
 
-    def __init__(self, dim, mine_count):
+    def __init__(self, dim, mine_count, test):
         """Set up global variables and create an empty MineSweeper grid"""
         self.fig, self.ax = plt.subplots(figsize=(7, 7))
         self.dim = dim
         self.total_mines = mine_count
+        self.testing_mode = test
         self.grid = np.zeros((self.dim, self.dim), dtype=int)
         self.visited = np.zeros((self.dim, self.dim), dtype=bool)
         self.markers = np.zeros((self.dim, self.dim), dtype=bool)
@@ -24,10 +25,10 @@ class MineSweeper:
         while mine_tracker < self.total_mines:
             x, y = randint(0, len(self.grid) - 1), randint(0, len(self.grid[0]) - 1)
             self.grid[x][y] = 1
-            print("Created mine at: ", x, ",", y)
+            # print("Created mine at: ", x, ",", y)
             mine_tracker += 1
 
-        print(self.grid)
+        # print(self.grid)
         self.display_minesweeper_grid()
 
     def display_minesweeper_grid(self):
@@ -57,6 +58,7 @@ class MineSweeper:
             print("Clicked: ", x, ",", y)
 
             self.fig.canvas.draw_idle()
+            print(self.get_neighbors(x, y))
             if self.mines_found >= self.total_mines:
                 print("Game Over:All Mines Found -> Rerun program")
                 self.success_state = False
@@ -66,11 +68,12 @@ class MineSweeper:
         cid = self.fig.canvas.mpl_connect('button_press_event', onclick)
 
         # ani = animation.FuncAnimation(fig, animate, interval=1000)
-        self.reveal_all_mines()
+        # self.reveal_all_mines()
         plt.show()
 
     def get_neighbors(self, x, y):
-        adjacent_mines = 0
+        adjacent_mines = hidden_squares = 0
+        revealed_safe = revealed_mine = 0
         neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         """Check if the child node is indeed an empty space"""
         """Traverse the neighbors"""
@@ -80,23 +83,32 @@ class MineSweeper:
                 """Check if the neighbors are a mine, if they are count the neighboring mines"""
                 if self.grid[x + i][y + j] == 1:
                     adjacent_mines += 1
-                    print("Found mine at: ", x + i, ",", y + j)
+                    # print("Found mine at: ", x + i, ",", y + j)
+                if not self.visited[x + i][y + j]:
+                    hidden_squares += 1
+                # print("Found hidden square at: ", x + i, ",", y + j)
+                if self.visited[x + i][y + j] and self.grid[x + i][y + j] == 0:
+                    revealed_safe += 1
+                if self.visited[x + i][y + j] and self.grid[x + i][y + j] == 1:
+                    revealed_mine += 1
         """Return total mine near neighbor"""
-        return adjacent_mines
+        return adjacent_mines, hidden_squares, revealed_safe, revealed_mine
 
     def draw_flag(self, x, y):
-        self.ax.scatter(x, y, marker=">", color="cyan", s=200)
+        self.ax.scatter(x, y, marker=">", color="red")
         self.markers[x][y] = True
         self.visited[x][y] = True
 
     def reveal_mine_count(self, x, y):
-        (count) = str(self.get_neighbors(x, y))
-        self.ax.text(x, y, count, fontsize=15)
+        adjacent_mines, _, _, _ = self.get_neighbors(x, y)
+        (count) = str(adjacent_mines)
+        self.ax.text(x, y, count)
+        self.ax.scatter(x, y, marker="s", color="silver")
         self.visited[x][y] = True
         self.gg = True
 
     def reveal_mine(self, x, y):
-        self.ax.scatter(x, y, marker="o", color="cyan", s=200)
+        self.ax.scatter(x, y, marker="o", color="cyan")
         self.markers[x][y] = True
         self.visited[x][y] = True
         self.success_state = False
@@ -104,11 +116,12 @@ class MineSweeper:
         print("Bomb Detonated")
 
     """For testing purposes -> see all bombs"""
+
     def reveal_all_mines(self):
         for x in range(self.dim):
             for y in range(self.dim):
                 if self.grid[x][y] == 1:
-                    self.ax.scatter(x, y, marker="o", color="red", s=200)
+                    self.ax.scatter(x, y, marker="o", color="black")
                     self.markers[x][y] = True
                     self.visited[x][y] = True
 
@@ -122,8 +135,32 @@ class MineSweeper:
                     if self.markers[x][y] and self.grid[x][y] == 1:
                         self.success_state = True
 
+    def basic_agent(self):
+
+        """Start at a random point in the grid -> first move"""
+        x, y = randint(0, len(self.grid) - 1), randint(0, len(self.grid[0]) - 1)
+
+        """The first cell is checked to be safe"""
+
+        if self.grid[x][y] != 1:
+            clue, hidden_squares, revealed_safe, revealed_mine = self.get_neighbors(x, y)
+            self.visited[x][y] = True
+            """also the mine count"""
+            safe_squares = 8 - clue
+
+            """8 total spaces, 3 is the clue meaning 3 mines. meaning 5 empty. 8 - 3 = 5"""
+
+        for x in range(self.dim):
+            for y in range(self.dim):
+                pass
+        pass
+
 
 if __name__ == '__main__':
     dimension = int(input("Enter Dimension of the the minesweeper grid:\n"))
     total_mines = int(input("Enter how many mines should be in the game:\n"))
-    minesweep = MineSweeper(dimension, total_mines)
+    human_or_ai = str(input("Testing mode?[y/n]\n"))
+    if human_or_ai == "y":
+        minesweep = MineSweeper(dimension, total_mines, True)
+    else:
+        minesweep = MineSweeper(dimension, total_mines, False)
