@@ -337,6 +337,7 @@ class MineSweeper:
                 print("Issued from all mines")
                 for index, coords_tuple in enumerate(hidden_squares_list):
                     self.markers[coords_tuple[0]][coords_tuple[1]] = True
+                    self.flags.append((coords_tuple))
                     self.visited[coords_tuple[0]][coords_tuple[1]] = True
                     self.draw_flag(coords_tuple[0], coords_tuple[1])
 
@@ -370,6 +371,7 @@ class MineSweeper:
                 self.grid = np.zeros((self.dim, self.dim), dtype=int)
                 self.visited = np.zeros((self.dim, self.dim), dtype=bool)
                 self.markers = np.zeros((self.dim, self.dim), dtype=bool)
+                self.flags = []
                 self.total_mines = np.floor((self.dim * self.dim) * density_percentage)
                 """create mines on the board"""
                 mine_tracker = 0
