@@ -34,6 +34,8 @@ class MineSweeper:
                 self.grid[x][y] = 1
                 # print("Created mine at: ", x, ",", y)
                 mine_tracker += 1
+        else:
+            self.test_the_agent()
         # else:
 
         # self.grid[4][4] = 1
@@ -214,12 +216,15 @@ class MineSweeper:
             print("RANDOM DETONATED THE BOMB")
             # quit()"""
         # print("The random coord is: ", zero_queue)
-        turn = 0
+        first_turn = True
         while len(np.where(self.visited == 0)[0]) != 0:
-            self.zero_queue.append(self.random_cords())
-            if turn != 0:
-                print("Improved cords",self.improved_random_cords((x,y)))
-            turn += 1
+            if first_turn:
+                self.zero_queue.append(self.random_cords())
+                first_turn = False
+            else:
+                # print("Improved cords",self.improved_random_cords((x,y)))
+                # self.zero_queue.append(self.improved_random_cords((x,y)))
+                self.zero_queue.append(self.random_cords())
             while self.zero_queue:
                 """if self.reveal_mine_count(x, y) == 1:
                 open_tuple = self.random_cords()
@@ -377,18 +382,22 @@ class MineSweeper:
     def get_random_neighbor(self):
         return random.choice(self.neighbors)
 
-    def test_agent(self):
+    def test_the_agent(self):
         density_vs_safe_mines_flagged = pd.DataFrame(columns=('Density', 'Safe_Mines_Flagged_Rate'))
-
+        i = 0
         for density_percentage in np.arange(0.0, 1, .05):
             current_density_attempts = 0
+            total_percentage = 0
             while current_density_attempts < 10:
+                print("Successful attempts so far:", current_density_attempts, "@ density: ", density_percentage)
                 """set up the board for testing"""
                 self.grid = np.zeros((self.dim, self.dim), dtype=int)
                 self.visited = np.zeros((self.dim, self.dim), dtype=bool)
                 self.markers = np.zeros((self.dim, self.dim), dtype=bool)
                 self.flags = []
+                self.detonated_bombs = []
                 self.total_mines = np.floor((self.dim * self.dim) * density_percentage)
+                self.zero_queue = []
                 """create mines on the board"""
                 mine_tracker = 0
                 while mine_tracker < self.total_mines:
@@ -397,14 +406,19 @@ class MineSweeper:
                     # print("Created mine at: ", x, ",", y)
                     mine_tracker += 1
                 """Run the test"""
+                # self.display_minesweeper_grid()
                 self.basic_agent()
-
-                successful_mine = 0
-                for x in range(0, self.dim):
-                    for y in range(0, self.dim):
-                        if self.markers[x][y] and self.grid[x][y] == 1:
-                            successful_mine += 1
+                result = np.where(self.grid == 1)
+                if density_percentage != 0:
+                    rate = len(self.flags) / len(list(zip(result[0], result[1])))
+                else:
+                    rate = len(self.flags) / 1
+                print("The new rate: ", rate)
+                total_percentage += rate
+                current_density_attempts += 1
+        density_vs_safe_mines_flagged.loc[i] = [density_percentage, total_percentage / 10]
         density_vs_safe_mines_flagged.to_csv("basic_agent_density_vs_safe_mines_flagged.csv", mode='a', index=False)
+        i += 1
 
     def improved_agent(self):
 
@@ -430,7 +444,7 @@ class MineSweeper:
             continue"""
             visited_chunk_cells = []
             # print(x, y)
-            print("The queue", self.zero_queue)
+            # print("The queue", self.zero_queue)
             current_tuple = self.zero_queue.pop()
             visited_chunk_cells.append(current_tuple)
             x, y = current_tuple[0], current_tuple[1]
@@ -482,26 +496,26 @@ class MineSweeper:
                         # time.sleep(3)
                         # self.check_grid()
                         # clue = new_clue
-                        print("This do be busted lol")
+                        # print("This do be busted lol")
                         if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
                             print("Does this run")
                             self.zero_queue.append(self.random_cords())
                     else:
                         print("From the first")
                         if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
-                            print("Does this run")
+                            # print("Does this run")
                             self.zero_queue.append(self.random_cords())
                         break
                 else:
                     print("From the second")
                     if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
-                        print("Does this run")
+                        # print("Does this run")
                         self.zero_queue.append(self.random_cords())
                     break
             # print(zero_queue)
             self.improved_check_grid(visited_chunk_cells)
             visited_chunk_cells.clear()
-            print("The queue before the bottom", self.zero_queue)
+            # print("The queue before the bottom", self.zero_queue)
 
     def improved_check_grid(self, visited_chunk_cells):
         while visited_chunk_cells:
