@@ -81,6 +81,7 @@ class MineSweeper:
                     self.draw_flag(x, y)
                     self.visited[x][y] = True
                     self.markers[x][y] = True
+                    self.flags.append((x, y))
             # print("Clicked: ", x, ",", y)
 
             self.fig.canvas.draw_idle()
@@ -386,6 +387,133 @@ class MineSweeper:
                             successful_mine += 1
         density_vs_safe_mines_flagged.to_csv("basic_agent_density_vs_safe_mines_flagged.csv", mode='a', index=False)
 
+    def improved_agent(self):
+
+        """Create empty open queue to add 0 coords to"""
+
+        """Generate random coordinates"""
+        # open_tuple = self.random_cords()
+        # self.revised_random()
+        # x, y = open_tuple[0], open_tuple[1]
+        self.zero_queue.append(self.random_cords())
+        # self.visited[x][y] = True
+
+        """if self.grid[x][y] == 1:
+            print(x, y)
+            print("RANDOM DETONATED THE BOMB")
+            # quit()"""
+        # print("The random coord is: ", zero_queue)
+
+        while self.zero_queue:
+            """if self.reveal_mine_count(x, y) == 1:
+            open_tuple = self.random_cords()
+            x, y = open_tuple[0], open_tuple[1]
+            continue"""
+            visited_chunk_cells = []
+            # print(x, y)
+            print("The queue", self.zero_queue)
+            current_tuple = self.zero_queue.pop()
+            visited_chunk_cells.append(current_tuple)
+            x, y = current_tuple[0], current_tuple[1]
+            self.visited[x][y] = True
+            self.reveal_mine_count(x, y)
+            # self.mark_all_neighbors_safe(x, y)
+            """no bounds check made here - fix"""
+            # random_neighbor = self.get_random_neighbor()
+            direction_tuple = self.get_direction(x, y)
+            # x += random_neighbor[0]
+            # y += random_neighbor[1]
+            if direction_tuple is not None:
+                scalex, scaley = direction_tuple[0], direction_tuple[1]
+            else:
+                continue
+            cell_data = (clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, zero_neighbors) \
+                = self.get_neighbors(x, y)
+
+            count = 0  # ghetto animation variable
+            while True:
+                if clue == 0:
+                    self.mark_all_neighbors_safe(x, y)
+                    # self.check_grid(x, y, cell_data)
+                    if x + scalex in range(self.dim) and y + scaley in range(self.dim):
+                        # print("Stuck here")
+                        clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, \
+                        zero_neighbors = self.get_neighbors(x + scalex, y + scaley)
+                        if clue != 0:
+                            # print("This should be the last entry")
+                            pass
+                        x += scalex
+                        y += scaley
+                        if clue == 0:
+                            open_tuple = x, y
+                            self.zero_queue.append(open_tuple)
+                            # self.mark_all_neighbors_safe(x, y)
+
+                        self.reveal_mine_count(x, y)
+                        self.visited[x][y] = True
+                        # self.fig.canvas.draw_idle()
+                        """if clue != 0:
+                            self.ax.imshow(self.grid, cmap=colormap)
+                            plt.pause(.005)
+                        if count % 50 == 0:
+                            self.ax.imshow(self.grid, cmap=colormap)
+                            plt.pause(.005)"""
+                        count += 1
+                        # time.sleep(3)
+                        # self.check_grid()
+                        # clue = new_clue
+                        print("This do be busted lol")
+                        if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
+                            print("Does this run")
+                            self.zero_queue.append(self.random_cords())
+                    else:
+                        print("From the first")
+                        if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
+                            print("Does this run")
+                            self.zero_queue.append(self.random_cords())
+                        break
+                else:
+                    print("From the second")
+                    if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
+                        print("Does this run")
+                        self.zero_queue.append(self.random_cords())
+                    break
+            # print(zero_queue)
+            self.improved_check_grid(visited_chunk_cells)
+            visited_chunk_cells.clear()
+            print("The queue before the bottom", self.zero_queue)
+
+    def improved_check_grid(self, visited_chunk_cells):
+        while visited_chunk_cells:
+            check_tuple = visited_chunk_cells.pop()
+            x, y = check_tuple[0], check_tuple[1]
+            clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, open_zero_neighbors \
+                = self.get_neighbors(x, y)
+            """All hidden squares surrounding the current cell is a mine"""
+            if clue - revealed_mine == hidden_squares:
+                print("Issued from all mines")
+                for index, coords_tuple in enumerate(hidden_squares_list):
+                    self.markers[coords_tuple[0]][coords_tuple[1]] = True
+                    self.visited[coords_tuple[0]][coords_tuple[1]] = True
+                    self.draw_flag(coords_tuple[0], coords_tuple[1])
+
+            """If a space has as many revealed mines as the clue, the neighbors of the clue cell are safe"""
+            """if clue - revealed_mine == 0:
+                self.reveal_mine_count(x,y)
+                self.visited
+
+                if clue - revealed_mine == hidden_squares:
+                    print("Issued from all mines")
+                    for index, coords_tuple in enumerate(hidden_squares_list):
+                        self.markers[coords_tuple[0]][coords_tuple[1]] = True
+                        self.visited[coords_tuple[0]][coords_tuple[1]] = True
+                        self.draw_flag(coords_tuple[0], coords_tuple[1])"""
+
+            """All hidden squares surrounding the current cell is safe"""
+            if 8 - clue - revealed_safe == hidden_squares:
+                print("Issued from all safe")
+                # self.mark_all_neighbors_safe(x=x, y=y)
+                # for index, coords_tuple in enumerate(hidden_squares_list):
 
 
 if __name__ == '__main__':
