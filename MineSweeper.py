@@ -210,91 +210,91 @@ class MineSweeper:
             # quit()"""
         # print("The random coord is: ", zero_queue)
 
-        while len(np.where(self.visited == 0)[0]) != 0:
-            print("Running")
-            # self.ax.imshow(self.grid, cmap=self.colormap)
-            # plt.pause(.005)
-            # if len(np.where(self.visited == 0)) != 0:
-            print("length of the list: ", len(np.where(self.visited == 0)))
-            self.zero_queue.append(self.random_cords())
-            while self.zero_queue:
-                """if self.reveal_mine_count(x, y) == 1:
-                open_tuple = self.random_cords()
-                x, y = open_tuple[0], open_tuple[1]
-                continue"""
-                visited_chunk_cells = []
-                # print(x, y)
-                print("The queue", self.zero_queue)
-                current_tuple = self.zero_queue.pop(0)
-                visited_chunk_cells.append(current_tuple)
-                x, y = current_tuple[0], current_tuple[1]
-                self.visited[x][y] = True
-                self.reveal_mine_count(x, y)
-                # self.mark_all_neighbors_safe(x, y)
-                """no bounds check made here - fix"""
-                # random_neighbor = self.get_random_neighbor()
-                direction_tuple = self.get_direction(x, y)
-                # x += random_neighbor[0]
-                # y += random_neighbor[1]
-                if direction_tuple is not None:
-                    scalex, scaley = direction_tuple[0], direction_tuple[1]
-                else:
-                    continue
-                cell_data = (clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, zero_neighbors) \
-                    = self.get_neighbors(x, y)
+        # while len(np.where(self.visited == 0)[0]) != 0:
+        print("Running")
+        # self.ax.imshow(self.grid, cmap=self.colormap)
+        # plt.pause(.005)
+        # if len(np.where(self.visited == 0)) != 0:
+        print("length of the list: ", len(np.where(self.visited == 0)))
+        self.zero_queue.append(self.random_cords())
+        while self.zero_queue:
+            """if self.reveal_mine_count(x, y) == 1:
+            open_tuple = self.random_cords()
+            x, y = open_tuple[0], open_tuple[1]
+            continue"""
+            visited_chunk_cells = []
+            # print(x, y)
+            print("The queue", self.zero_queue)
+            current_tuple = self.zero_queue.pop(0)
+            visited_chunk_cells.append(current_tuple)
+            x, y = current_tuple[0], current_tuple[1]
+            self.visited[x][y] = True
+            self.reveal_mine_count(x, y)
+            # self.mark_all_neighbors_safe(x, y)
+            """no bounds check made here - fix"""
+            # random_neighbor = self.get_random_neighbor()
+            direction_tuple = self.get_direction(x, y)
+            # x += random_neighbor[0]
+            # y += random_neighbor[1]
+            if direction_tuple is not None:
+                scalex, scaley = direction_tuple[0], direction_tuple[1]
+            else:
+                continue
+            cell_data = (clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, zero_neighbors) \
+                = self.get_neighbors(x, y)
 
-                count = 0  # ghetto animation variable
-                while True:
-                    if clue == 0:
-                        self.mark_all_neighbors_safe(x, y)
-                        # self.check_grid(x, y, cell_data)
-                        if x + scalex in range(self.dim) and y + scaley in range(self.dim):
-                            # print("Stuck here")
-                            clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, \
-                            zero_neighbors = self.get_neighbors(x + scalex, y + scaley)
-                            if clue != 0:
-                                # print("This should be the last entry")
-                                pass
-                            x += scalex
-                            y += scaley
-                            if clue == 0:
-                                open_tuple = x, y
-                                self.zero_queue.append(open_tuple)
-                                # self.mark_all_neighbors_safe(x, y)
+            count = 0  # ghetto animation variable
+            while True:
+                if clue == 0:
+                    self.mark_all_neighbors_safe(x, y)
+                    # self.check_grid(x, y, cell_data)
+                    if x + scalex in range(self.dim) and y + scaley in range(self.dim):
+                        # print("Stuck here")
+                        clue, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, \
+                        zero_neighbors = self.get_neighbors(x + scalex, y + scaley)
+                        if clue != 0:
+                            # print("This should be the last entry")
+                            pass
+                        x += scalex
+                        y += scaley
+                        if clue == 0:
+                            open_tuple = x, y
+                            self.zero_queue.append(open_tuple)
+                            # self.mark_all_neighbors_safe(x, y)
 
-                            self.reveal_mine_count(x, y)
-                            self.visited[x][y] = True
-                            # self.fig.canvas.draw_idle()
-                            """if clue != 0:
-                                self.ax.imshow(self.grid, cmap=colormap)
-                                plt.pause(.005)
-                            if count % 50 == 0:
-                                self.ax.imshow(self.grid, cmap=colormap)
-                                plt.pause(.005)"""
-                            count += 1
-                            # time.sleep(3)
-                            # self.check_grid()
-                            # clue = new_clue
-                            print("This do be busted lol")
-                            if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
-                                print("Does this run 1 ")
-                                # self.zero_queue.append(self.random_cords())
-                        else:
-                            print("From the first")
-                            if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
-                                print("Does this run 2")
-                                # self.zero_queue.append(self.random_cords())
-                            break
-                    else:
-                        print("From the second")
+                        self.reveal_mine_count(x, y)
+                        self.visited[x][y] = True
+                        # self.fig.canvas.draw_idle()
+                        """if clue != 0:
+                            self.ax.imshow(self.grid, cmap=colormap)
+                            plt.pause(.005)
+                        if count % 50 == 0:
+                            self.ax.imshow(self.grid, cmap=colormap)
+                            plt.pause(.005)"""
+                        count += 1
+                        # time.sleep(3)
+                        # self.check_grid()
+                        # clue = new_clue
+                        print("This do be busted lol")
                         if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
-                            print("Does this run 3 ")
+                            print("Does this run 1 ")
+                            # self.zero_queue.append(self.random_cords())
+                    else:
+                        print("From the first")
+                        if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
+                            print("Does this run 2")
                             # self.zero_queue.append(self.random_cords())
                         break
-                # print(zero_queue)
-                self.check_grid(visited_chunk_cells)
-                visited_chunk_cells.clear()
-                print("The queue before the bottom", self.zero_queue)
+                else:
+                    print("From the second")
+                    if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
+                        print("Does this run 3 ")
+                        # self.zero_queue.append(self.random_cords())
+                    break
+            # print(zero_queue)
+            self.check_grid(visited_chunk_cells)
+            visited_chunk_cells.clear()
+            print("The queue before the bottom", self.zero_queue)
 
             # continue
         """ mines_found = np.where(self.markers is True)
