@@ -19,6 +19,7 @@ class MineSweeper:
         self.success_state = False
         self.gg = False
         self.mines_found = 0
+        self.flags = []
         self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.zero_queue = []
         """Randomly populate the grid with how many mines the user chose"""
