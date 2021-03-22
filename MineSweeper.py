@@ -214,8 +214,12 @@ class MineSweeper:
             print("RANDOM DETONATED THE BOMB")
             # quit()"""
         # print("The random coord is: ", zero_queue)
+        turn = 0
         while len(np.where(self.visited == 0)[0]) != 0:
             self.zero_queue.append(self.random_cords())
+            if turn != 0:
+                print("Improved cords",self.improved_random_cords((x,y)))
+            turn += 1
             while self.zero_queue:
                 """if self.reveal_mine_count(x, y) == 1:
                 open_tuple = self.random_cords()
@@ -319,7 +323,7 @@ class MineSweeper:
 
         for i, j in self.neighbors:
             if old_location[0] + i in range(0, self.dim) and old_location[1] + j in range(0, self.dim):
-                if new_location[0] == old_location + i and new_location[1] == old_location[1] + j:
+                if new_location[0] == old_location[0] + i and new_location[1] == old_location[1] + j:
                     return True
         return False
 
