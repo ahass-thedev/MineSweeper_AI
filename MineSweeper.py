@@ -10,23 +10,28 @@ class MineSweeper:
 
     def __init__(self, dim, mine_count, test):
         """Set up global variables and create an empty MineSweeper grid"""
+        self.colormap = colors.ListedColormap(["grey"])
         self.fig, self.ax = plt.subplots(figsize=(7, 7))
+        "size"
         self.dim = dim
         self.total_mines = mine_count
+        """play with ai or let ai run by itself with no gui"""
         self.testing_mode = test
+        """The Minesweeper grid"""
         self.grid = np.zeros((self.dim, self.dim), dtype=int)
         self.visited = np.zeros((self.dim, self.dim), dtype=bool)
         self.markers = np.zeros((self.dim, self.dim), dtype=bool)
+        """needed to continue playing after a mine detonation"""
         self.detonated_bombs = []
         self.success_state = False
         self.gg = False
-        self.mines_found = 0
+        """for the bonus"""
+        self.mines_found = len(self.detonated_bombs)
         self.flags = []
         self.neighbors = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (1, -1), (-1, 1), (-1, -1)]
         self.zero_queue = []
 
         """Randomly populate the grid with how many mines the user chose"""
-        """Fix overlap issue"""
         mine_tracker = 0
         if not self.testing_mode:
             while mine_tracker < self.total_mines:
@@ -35,6 +40,7 @@ class MineSweeper:
                 # print("Created mine at: ", x, ",", y)
                 mine_tracker += 1
         else:
+            """sets up mines and takes care of the entire board generation, no gui"""
             self.test_the_agent()
         # else:
 
@@ -45,8 +51,7 @@ class MineSweeper:
         self.display_minesweeper_grid()
 
     def display_minesweeper_grid(self):
-        colormap = colors.ListedColormap(["grey"])
-        self.ax.imshow(self.grid, cmap=colormap)
+        self.ax.imshow(self.grid, cmap=self.colormap)
 
         # ax.scatter(0, 0, marker=">", color="cyan", s=200)
         # self.ax.set_xticks(np.arange(0, self.dim, 1))
@@ -67,7 +72,7 @@ class MineSweeper:
             # print("Clicked: ", x, ",", y)
 
             if event.button == 3:
-                self.basic_agent()
+                self.improved_agent()
                 print(len(self.flags), self.total_mines)
                 print("The rate: ", len(self.flags) / self.total_mines)
                 print(self.flags)
@@ -120,6 +125,7 @@ class MineSweeper:
         if self.grid[x][y] == 1:
             # return -99, hidden_squares, revealed_safe, revealed_mine, hidden_squares_list, open_zero_neighbors
             self.detonated_bombs.append((x, y))
+            self.mines_found += 1
         for i, j in self.neighbors:
             """Check that the neighbors are inbounds"""
             if x + i in range(0, self.dim) and y + j in range(0, self.dim):
@@ -142,7 +148,7 @@ class MineSweeper:
                     revealed_safe += 1
                     """mines discovered"""
                 if self.markers[x + i][y + j] or (x + i, y + j) in self.detonated_bombs:
-                    print("Test if statement", np.any(self.detonated_bombs == (x + i, y + j)))
+                    # print("Test if statement", np.any(self.detonated_bombs == (x + i, y + j)))
                     revealed_mine += 1
                     # self.draw_flag(x + i, y + j)
                     # print("Revealed mine found", x + i, y + j)
@@ -283,18 +289,18 @@ class MineSweeper:
                             # time.sleep(3)
                             # self.check_grid()
                             # clue = new_clue
-                            print("This do be busted lol")
+                            # print("This do be busted lol")
                             if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
                                 print("Does this run")
                                 # self.zero_queue.append(self.random_cords())
                         else:
-                            print("From the first")
+                            # print("From the first")
                             if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
                                 print("Does this run")
                                 # self.zero_queue.append(self.random_cords())
                             break
                     else:
-                        print("From the second")
+                        # print("From the second")
                         if len(self.zero_queue) == 0 and len(np.where((self.visited == 0))) != 0:
                             print("Does this run")
                             # self.zero_queue.append(self.random_cords())
@@ -384,11 +390,17 @@ class MineSweeper:
     def test_the_agent(self):
         density_vs_safe_mines_flagged = pd.DataFrame(columns=('Density', 'Safe_Mines_Flagged_Rate'))
         i = 0
-        for density_percentage in np.arange(0.0, 1, .05):
+
+        for density_percentage in np.arange(0.35, 1, .05):
             current_density_attempts = 0
             total_percentage = 0
-            while current_density_attempts < 10:
-                print("Successful attempts so far:", current_density_attempts, "@ density: ", density_percentage)
+            rate = 0
+            while current_density_attempts < 5:
+                if current_density_attempts != 0:
+                    print("Successful attempts so far:", current_density_attempts, "@ density: ", density_percentage,
+                          "average success so far,", total_percentage / current_density_attempts)
+                else:
+                    print("Successful attempts so far:", current_density_attempts, "@ density: ", density_percentage)
                 """set up the board for testing"""
                 self.grid = np.zeros((self.dim, self.dim), dtype=int)
                 self.visited = np.zeros((self.dim, self.dim), dtype=bool)
@@ -411,10 +423,13 @@ class MineSweeper:
                 if density_percentage != 0:
                     rate = len(self.flags) / len(list(zip(result[0], result[1])))
                 else:
-                    rate = len(self.flags) / 1
+                    rate = 1 / 1
                 print("The new rate: ", rate)
                 total_percentage += rate
                 current_density_attempts += 1
+            density_vs_safe_mines_flagged.loc[i] = [density_percentage, total_percentage / current_density_attempts]
+            density_vs_safe_mines_flagged.to_csv("basic_agent_density_vs_safe_mines_flagged.csv", mode='a', index=False)
+            i += 1
         density_vs_safe_mines_flagged.loc[i] = [density_percentage, total_percentage / 10]
         density_vs_safe_mines_flagged.to_csv("improved_density_vs_safe_mines_flagged.csv", mode='a', index=False)
         i += 1
@@ -523,6 +538,7 @@ class MineSweeper:
                 print("The queue before the bottom", self.zero_queue)
 
     def improved_check_grid(self, visited_chunk_cells):
+        count = 0
         while visited_chunk_cells:
             check_tuple = visited_chunk_cells.pop()
             x, y = check_tuple[0], check_tuple[1]
@@ -534,11 +550,16 @@ class MineSweeper:
                 for index, coords_tuple in enumerate(hidden_squares_list):
                     self.markers[coords_tuple[0]][coords_tuple[1]] = True
                     self.flags.append(coords_tuple)
+                    self.mines_found += 1
                     self.visited[coords_tuple[0]][coords_tuple[1]] = True
                     self.draw_flag(coords_tuple[0], coords_tuple[1])
 
                 for a in self.flags:
                     print(a)
+                    if count % 50 == 0:
+                        self.ax.imshow(self.grid, cmap=self.colormap)
+                        plt.pause(.005)
+                    count += 10
                     # self.visited[a[0]][a[1]] = True
 
                     for i, j in self.neighbors:
@@ -569,6 +590,14 @@ class MineSweeper:
                 self.mark_all_neighbors_safe(x, y)
                 # self.mark_all_neighbors_safe(x=x, y=y)
                 # for index, coords_tuple in enumerate(hidden_squares_list):
+
+            """if self.mines_found == self.total_mines:
+                for x in range(0, self.dim):
+                    for y in range(0, self.dim):
+                        if not self.visited[x][y]:
+                            self.visited[x][y] = True
+                            self.markers[x][y] = True
+                            self.flags.append((x, y))"""
 
 
 if __name__ == '__main__':
